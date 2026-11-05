@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "name": "CITIC 2027 Strategy Allocation System",
+    "version": "1.0",
+    "baseline_date": "2026-11-06",
+    "horizon": "2026Q4-2027年末",
+    "purpose": "把中信证券研究部 2027 年策略观点参数化为可执行配置与纪律",
+    "disclaimer": "策略框架工具，不构成投资建议或收益承诺"
+  },
+  "sources": [
+    {"id": "A", "org": "中信证券研究部", "title": "A股市场2027年投资策略：调整前置，转机将现", "date": "2026-11"},
+    {"id": "H", "org": "中信证券研究部", "title": "港股市场2027年投资策略：风险已充分计价，修复行情有望开启", "date": "2026-11"},
+    {"id": "S", "org": "中信证券", "title": "2027年资本市场策略会（融光聚存 向新而行）", "date": "2026-11"}
+  ],
+  "research_params": [
+    {"key": "全A归母净利同比_2026E", "value": 0.155, "source": "A"},
+    {"key": "全A归母净利同比_2027E", "value": 0.095, "source": "A"},
+    {"key": "全A非金融净利同比_2026E", "value": 0.201, "source": "A"},
+    {"key": "全A非金融净利同比_2027E", "value": 0.147, "source": "A"},
+    {"key": "恒指盈利增速_2027E", "value": 0.074, "source": "H"},
+    {"key": "恒生科技盈利增速_2027E", "value": 0.248, "source": "H"},
+    {"key": "恒指动态PE", "value": 9.7, "source": "H"},
+    {"key": "恒生科技动态PE", "value": 13.1, "source": "H"},
+    {"key": "恒生科技PE历史分位", "value": 0.024, "source": "H"},
+    {"key": "港股2027年1月解禁_亿港元", "value": 3200, "source": "H"},
+    {"key": "银行ROE中枢", "value": "8%-9%", "source": "S"}
+  ],
+  "style_views": {
+    "a_share_regime": "K型收敛：AI内部洗牌、非AI广泛修复、行情宽度拓展",
+    "style_preference": "PB-ROE稳健回报 > 纯景气",
+    "hk_sequence": "上半年红利压舱，下半年成长切换",
+    "main_lines": ["稳健回报", "优秀出海制造", "内需修复", "AI新技术"]
+  },
+  "tiers": {
+    "defensive": {"core": 65, "sat": 15, "hk": 8, "buf": 12},
+    "balanced": {"core": 55, "sat": 30, "hk": 10, "buf": 5},
+    "aggressive": {"core": 45, "sat": 40, "hk": 12, "buf": 3},
+    "micro": {"core": 70, "sat": 20, "hk": 0, "buf": 10}
+  },
+  "sleeve_ratios": {
+    "core": {"broad": 45, "div": 35, "fcf": 20},
+    "sat": {"ai": 40, "mfg": 35, "cons": 25},
+    "hk": {"hkdiv": 70, "hkgrow": 30},
+    "buf": {"gold": 60, "cash": 40}
+  },
+  "dimension_weights": {
+    "earnings": 0.20,
+    "valuation": 0.20,
+    "market_width": 0.18,
+    "liquidity": 0.17,
+    "ai_cycle": 0.15,
+    "risk_event": 0.10
+  },
+  "engine_formulas": {
+    "score": "sum(weight_i * score_i), score_i in [0,100], neutral=50",
+    "earnings_score": "50 + (growth - 9.5) * 8",
+    "valuation_score": "50 + (50 - percentile) * 1.2",
+    "liquidity_score": "50 + 26*fed_cut + 15*southbound + 9*domestic",
+    "ai_score": "50 + (capex_growth - 20) * 2",
+    "position_multiplier": "clamp(1 + (score-50)/50*0.35, 0.60, 1.35)",
+    "equity_weight": "clamp(tier_equity * multiplier, 25, 95); micro capped at 90",
+    "single_track_cap": 15
+  },
+  "signals": [
+    {"id": "fed", "name": "美联储降息落地", "source": "H", "effect": "hkgrow +20pp / hkdiv -20pp"},
+    {"id": "south", "name": "南向资金重新加速", "source": "H", "effect": "hkgrow +10pp"},
+    {"id": "unlock", "name": "港股解禁/融资供给压力", "source": "H", "effect": "hkgrow -15pp"},
+    {"id": "fiscal", "name": "财政加力/地产去库存", "source": "A", "effect": "cons +10pp (AI、mfg 各让 5pp)"},
+    {"id": "capex", "name": "AI资本开支明显降速", "source": "A", "effect": "ai -12pp，转入宽基"},
+    {"id": "geopol", "name": "中美摩擦/地缘升级", "source": "A", "effect": "hkgrow -15pp, ai -8pp, gold +10pp"}
+  ],
+  "valuation_anchors": [
+    {"id": "hs300", "rule": "PE分位>70% 停止新增宽基"},
+    {"id": "div_yield", "rule": "股息率<3.5% 停止新增红利"},
+    {"id": "hstech", "rule": "PE分位<10% 分批越跌越买"}
+  ],
+  "discipline": [
+    "季度再平衡，任一子类偏离目标 ±5pp 即调回",
+    "卫星浮盈 +20% 卖 1/3，+30% 再卖 1/3",
+    "卫星自高点回撤 25% 且逻辑破坏即清仓（底仓不设硬止损）",
+    "单一赛道 ≤15%",
+    "限期限资金：满 11 个月开始减仓，满 12 个月清零",
+    "只在信号确认后调整结构，不做情绪化择时"
+  ],
+  "scenario_assumptions": [
+    {"id": "bull", "equity_return": 0.25, "buffer_return": 0.015},
+    {"id": "base", "equity_return": 0.04, "buffer_return": 0.010},
+    {"id": "bear", "equity_return": -0.18, "buffer_return": 0.005}
+  ]
+}
