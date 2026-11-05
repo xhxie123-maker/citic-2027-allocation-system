@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>中信 2027 策略 · 投资决策系统</title>
+<meta name="description" content="把中信证券研究部 2027 年 A 股/港股投资策略，转成可打分、可执行、可复盘的资产配置决策系统。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f5fa8'/%3E%3Ctext x='16' y='22' font-size='16' fill='white' text-anchor='middle' font-family='sans-serif'%3E%E7%AD%96%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="brand">
+    <h1>中信 2027 策略 · 投资决策系统</h1>
+    <span class="chip acc">研报驱动</span>
+    <span class="chip">可打分</span>
+    <span class="chip">可复盘</span>
+    <span class="chip gray">v1.0 · 基线 2026-11-06</span>
+  </div>
+  <div class="sub" style="margin-top:6px">把中信证券研究部 2027 年 A 股 / 港股策略，转成「评分 → 仓位 → 标的 → 调仓 → 复盘」的可执行闭环。参数与权重均可追溯，不构成收益承诺。</div>
+</header>
+
+<div class="summary" id="summary"></div>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="overview">总览</button>
+  <button data-tab="engine">决策引擎</button>
+  <button data-tab="signals">信号雷达</button>
+  <button data-tab="alloc">配置与调仓</button>
+  <button data-tab="discipline">纪律与风控</button>
+  <button data-tab="source">研报溯源</button>
+</nav>
+
+<section class="tab" id="tab-overview"></section>
+<section class="tab" id="tab-engine"></section>
+<section class="tab" id="tab-signals"></section>
+<section class="tab" id="tab-alloc"></section>
+<section class="tab" id="tab-discipline"></section>
+<section class="tab" id="tab-source"></section>
+
+<div class="foot">
+  <div><strong>系统定位</strong>：本工具是对中信证券研究部公开策略观点的<strong>参数化落地</strong>，用于把研报判断转成可执行配置与纪律，不是行情预测工具，也不构成对任何个人的投资建议或收益承诺。</div>
+  <div style="margin-top:6px">数据基线：中信证券研究部《A股市场2027年投资策略：调整前置，转机将现》《港股市场2027年投资策略：风险已充分计价，修复行情有望开启》及 2027 年资本市场策略会公开要点（2026年11月）。研报原文请以中信证券研究官方发布为准。</div>
+  <div style="margin-top:6px">本页面全部计算在浏览器本地完成，不上传任何数据；输入与决策日志仅保存在本机浏览器存储中。</div>
+</div>
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/engine.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
