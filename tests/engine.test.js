@@ -42,6 +42,35 @@ check("防守 + 高估值", { tier: "defensive", capital: 500000, anchors: { hs3
 check("进取 + 全部信号", { tier: "aggressive", capital: 2000000, signals: { fed: 1, south: 1, unlock: 1, fiscal: 1, capex: 1, geopol: 1 } }, { maxTrack: true });
 check("极端输入", { tier: "aggressive", capital: 1000, inputs: { earnings: -50, width: 0, ai: -50, risk: 3 }, liq: { fed: 0, south: -1, dom: -1 }, anchors: { hs300: 99, divYield: 2, hstech: 90 } }, { maxTrack: true });
 
+/* ---- v1.1 新增结构断言 ---- */
+function assert(label, ok, extra) {
+  if (!ok) failed++;
+  console.log((ok ? "PASS " : "FAIL ") + label + (extra ? " | " + extra : ""));
+}
+
+S = Object.assign({}, defaultState(), { tier: "balanced", capital: 1000000, signals: {} });
+let r2 = compute();
+const bufLeaves = r2.leaves.filter(l => l.layer === "buf");
+assert("缓冲层三分（黄金 / 债券 / 货币）",
+  bufLeaves.length === 3 && bufLeaves.some(l => l.k === "bond") &&
+  Math.abs(bufLeaves.reduce((a, l) => a + l.weightPct, 0) - r2.buf) < 0.01,
+  bufLeaves.map(l => l.k + " " + l.weightPct.toFixed(1)).join(" / "));
+
+S = Object.assign({}, defaultState(), { tier: "aggressive", capital: 2000000, signals: { techwin: 1, hkconnect: 1 } });
+r2 = compute();
+const aiLeaf = r2.leaves.find(l => l.k === "ai") || { weightPct: 0 };
+const growLeaf = r2.leaves.find(l => l.k === "hkgrow") || { weightPct: 0 };
+assert("新信号（techwin / hkconnect）仍在 15% 单赛道上限内",
+  aiLeaf.weightPct <= 15.01 && growLeaf.weightPct <= 15.01,
+  "ai=" + aiLeaf.weightPct.toFixed(1) + " hkgrow=" + growLeaf.weightPct.toFixed(1) +
+  " sum=" + r2.leaves.reduce((a, l) => a + l.weightPct, 0).toFixed(2));
+
+assert("解禁窗口判定可用", typeof inUnlockWindow === "function",
+  "now=" + (typeof inUnlockWindow === "function" ? inUnlockWindow() : "-"));
+
+S = Object.assign({}, defaultState(), { tier: "balanced", capital: 1000000, signals: {} });
+r2 = compute();
+
 const r = compute();
 console.log("\n情景：", scenarios(r).map(x => x.name + " " + x.port.toFixed(1) + "% → " + Math.round(x.amount)).join(" | "));
 console.log("时间轴：", stageInfo().stage, stageInfo().pct.toFixed(1) + "%");
