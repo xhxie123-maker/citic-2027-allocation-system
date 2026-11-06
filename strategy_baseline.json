@@ -1,16 +1,23 @@
 {
   "meta": {
     "name": "CITIC 2027 Strategy Allocation System",
-    "version": "1.0",
+    "version": "1.1",
     "baseline_date": "2026-11-06",
     "horizon": "2026Q4-2027年末",
-    "purpose": "把中信证券研究部 2027 年策略观点参数化为可执行配置与纪律",
+    "purpose": "把中信证券研究 2027 年策略全库（29 篇）参数化为可执行配置与纪律",
+    "album": "中信证券研究公众号专辑《2027年投资策略》，29 篇（总量 10 篇 + 产业 6 类）",
     "disclaimer": "策略框架工具，不构成投资建议或收益承诺"
   },
   "sources": [
     {"id": "A", "org": "中信证券研究部", "title": "A股市场2027年投资策略：调整前置，转机将现", "date": "2026-11"},
     {"id": "H", "org": "中信证券研究部", "title": "港股市场2027年投资策略：风险已充分计价，修复行情有望开启", "date": "2026-11"},
-    {"id": "S", "org": "中信证券", "title": "2027年资本市场策略会（融光聚存 向新而行）", "date": "2026-11"}
+    {"id": "S", "org": "中信证券", "title": "2027年资本市场策略会（融光聚存 向新而行）", "date": "2026-11"},
+    {"id": "M", "org": "中信证券研究部", "title": "2027年宏观与政策展望：风波渐定向远行", "date": "2026-11-02"},
+    {"id": "G", "org": "中信证券研究部", "title": "2027年全球大类资产配置策略：防守反击", "date": "2026-10-29"},
+    {"id": "B", "org": "中信证券研究部", "title": "利率债2027年投资策略：风正帆悬 / 公募REITs 2027年投资策略：分红为盾，弹性为矛", "date": "2026-11-02"},
+    {"id": "E", "org": "中信证券研究部", "title": "ETF策略及主题量化2027年投资策略：高赔率机遇的回归", "date": "2026-11-04"},
+    {"id": "T", "org": "中信证券研究部", "title": "科技产业2027年投资策略：科技股估值已至低位，把握技术破局与应用扩散新机遇", "date": "2026-11-05"},
+    {"id": "FC", "org": "中信证券研究部", "title": "金融产业2027年投资策略：金融结构重构与红利价值重估 / 消费产业2027年投资策略：低预期下的修复弹性", "date": "2026-11-02"}
   ],
   "research_params": [
     {"key": "全A归母净利同比_2026E", "value": 0.155, "source": "A"},
@@ -23,12 +30,54 @@
     {"key": "恒生科技动态PE", "value": 13.1, "source": "H"},
     {"key": "恒生科技PE历史分位", "value": 0.024, "source": "H"},
     {"key": "港股2027年1月解禁_亿港元", "value": 3200, "source": "H"},
-    {"key": "银行ROE中枢", "value": "8%-9%", "source": "S"}
+    {"key": "银行ROE中枢", "value": "8%-9%", "source": "S"},
+    {"key": "恒生综指盈利增速_2027E", "value": 0.099, "source": "H"},
+    {"key": "港股通指数盈利增速_2027E", "value": 0.096, "source": "H"},
+    {"key": "恒指ERP", "value": 0.0664, "source": "H"},
+    {"key": "恒指ERP历史分位", "value": 0.212, "source": "H"},
+    {"key": "港股2027年3月解禁峰值_亿港元", "value": 1258, "source": "T"},
+    {"key": "解禁峰值中信息技术占比", "value": 0.65, "source": "T"},
+    {"key": "2026港股IPO_亿港元", "value": 5000, "source": "H"},
+    {"key": "2026港股再融资_亿港元", "value": 4626, "source": "H"},
+    {"key": "名义GDP增速_2027", "value": 0.048, "source": "M"},
+    {"key": "CPI_2027", "value": 0.005, "source": "M"},
+    {"key": "PPI_2027", "value": 0.001, "source": "M"},
+    {"key": "出口增速_2027", "value": 0.072, "source": "M"},
+    {"key": "社零增速_2027", "value": 0.010, "source": "M"},
+    {"key": "固定资产投资增速_2027", "value": -0.009, "source": "M"},
+    {"key": "制造业投资增速_2027", "value": 0.040, "source": "M"},
+    {"key": "地产投资增速_2027", "value": -0.20, "source": "M"},
+    {"key": "国内降息次数_2027", "value": "1次/10bp", "source": "M"},
+    {"key": "人民币汇率_2027年底", "value": "6.4-6.5", "source": "M"},
+    {"key": "赤字率_2027", "value": 0.04, "source": "M"},
+    {"key": "赤字规模_2027_万亿元", "value": 6.2, "source": "M"},
+    {"key": "特别国债_2027_万亿元", "value": "1.2-1.5", "source": "M"},
+    {"key": "10Y国债收益率中枢_2027", "value": "1.5%-1.6%", "source": "B"},
+    {"key": "中证800_PE八年分位", "value": 0.62, "source": "E"},
+    {"key": "创业板50_PE分位", "value": 0.108, "source": "E"},
+    {"key": "创业板指_PE十年分位", "value": 0.045, "source": "T"},
+    {"key": "中证800股息率", "value": 0.027, "source": "E"},
+    {"key": "中证红利股息率", "value": 0.0469, "source": "E"},
+    {"key": "科创50_PE分位_924以来", "value": 0.186, "source": "T"},
+    {"key": "纳指_PE分位_2016以来", "value": 0.091, "source": "T"},
+    {"key": "北美四大CSP_capex_2027_万亿美元", "value": 1.17, "source": "T"},
+    {"key": "北美四大CSP_capex增速_2027", "value": 0.59, "source": "T"},
+    {"key": "北美四大CSP_capex_2028_万亿美元", "value": 1.29, "source": "T"},
+    {"key": "国内云厂capex_2026_亿元", "value": 7900, "source": "T"},
+    {"key": "国内云厂capex_2027_亿元", "value": 8918, "source": "T"},
+    {"key": "国内云厂capex_2028_亿元", "value": 9205, "source": "T"},
+    {"key": "国产AI芯片出货_2027_万张", "value": 500, "source": "T"},
+    {"key": "ETF总数_只", "value": 1651, "source": "E"},
+    {"key": "ETF规模_万亿元", "value": 5.06, "source": "E"},
+    {"key": "ETF单月净流入_2026-10_亿元", "value": 3439, "source": "E"},
+    {"key": "港股REITs_TTM股息率", "value": "5.5%-9%", "source": "B"}
   ],
   "style_views": {
     "a_share_regime": "K型收敛：AI内部洗牌、非AI广泛修复、行情宽度拓展",
     "style_preference": "PB-ROE稳健回报 > 纯景气",
     "hk_sequence": "上半年红利压舱，下半年成长切换",
+    "tech_sequence": "A股科技先抑后扬，27Q1 为观察窗口（Rubin 模型 / 国模迭代 / 国产 HBM 量产 / capex 指引）",
+    "global_sequence": "先防守再反击：上半年防通胀与流动性收紧，下半年随美联储降息转成长",
     "main_lines": ["稳健回报", "优秀出海制造", "内需修复", "AI新技术"]
   },
   "tiers": {
@@ -41,7 +90,13 @@
     "core": {"broad": 45, "div": 35, "fcf": 20},
     "sat": {"ai": 40, "mfg": 35, "cons": 25},
     "hk": {"hkdiv": 70, "hkgrow": 30},
-    "buf": {"gold": 60, "cash": 40}
+    "buf": {"gold": 45, "bond": 30, "cash": 25}
+  },
+  "buffer_roles": {
+    "gold": "地缘与流动性对冲；金融属性品种是 2027 年商品弹性的主要来源",
+    "bond": "只做风险控制与分散，权重随风险维度动态（风险越差越加债）；不追信用下沉与长久期",
+    "cash": "再平衡弹药，不满仓",
+    "micro_exception": "小额档缓冲层 100% 货币：3000 元的 10% 缓冲=300 元，拆三只会被最小申赎单位吃掉"
   },
   "dimension_weights": {
     "earnings": 0.20,
@@ -59,20 +114,26 @@
     "ai_score": "50 + (capex_growth - 20) * 2",
     "position_multiplier": "clamp(1 + (score-50)/50*0.35, 0.60, 1.35)",
     "equity_weight": "clamp(tier_equity * multiplier, 25, 95); micro capped at 90",
-    "single_track_cap": 15
+    "single_track_cap": 15,
+    "bond_weight_delta": "(60 - risk_score) * 0.10  # 风险分越低（事件发酵）越加债",
+    "unlock_window": "current month in {2027-01, 2027-03} -> hkgrow -20pp (base -15pp) 且 ai -4pp"
   },
   "signals": [
-    {"id": "fed", "name": "美联储降息落地", "source": "H", "effect": "hkgrow +20pp / hkdiv -20pp"},
+    {"id": "fed", "name": "美联储降息落地", "source": "H/M", "effect": "hkgrow +20pp / hkdiv -20pp"},
     {"id": "south", "name": "南向资金重新加速", "source": "H", "effect": "hkgrow +10pp"},
-    {"id": "unlock", "name": "港股解禁/融资供给压力", "source": "H", "effect": "hkgrow -15pp"},
-    {"id": "fiscal", "name": "财政加力/地产去库存", "source": "A", "effect": "cons +10pp (AI、mfg 各让 5pp)"},
-    {"id": "capex", "name": "AI资本开支明显降速", "source": "A", "effect": "ai -12pp，转入宽基"},
-    {"id": "geopol", "name": "中美摩擦/地缘升级", "source": "A", "effect": "hkgrow -15pp, ai -8pp, gold +10pp"}
+    {"id": "unlock", "name": "港股解禁/融资供给压力", "source": "H/T", "effect": "hkgrow -15pp；窗口内 -20pp 且 ai -4pp"},
+    {"id": "fiscal", "name": "财政加力/地产去库存", "source": "A/M", "effect": "cons +10pp (AI、mfg 各让 5pp)"},
+    {"id": "capex", "name": "AI资本开支明显降速", "source": "A/T", "effect": "ai -12pp，转入宽基"},
+    {"id": "geopol", "name": "中美摩擦/地缘升级", "source": "A", "effect": "hkgrow -15pp, ai -8pp, gold +10pp"},
+    {"id": "hkconnect", "name": "互联互通改革落地", "source": "H/B", "effect": "hkgrow +8pp；红利层可纳入港股 REITs"},
+    {"id": "techwin", "name": "27Q1 技术窗口确认", "source": "T", "effect": "ai +8pp（确认前不追高）"}
   ],
   "valuation_anchors": [
     {"id": "hs300", "rule": "PE分位>70% 停止新增宽基"},
     {"id": "div_yield", "rule": "股息率<3.5% 停止新增红利"},
-    {"id": "hstech", "rule": "PE分位<10% 分批越跌越买"}
+    {"id": "hstech", "rule": "PE分位<10% 分批越跌越买"},
+    {"id": "cyb50", "rule": "创业板50 PE分位<15% 视为高赔率，宽基成长端可加"},
+    {"id": "dy_spread", "rule": "红利股息率-10Y国债<1.5pp 停止新增红利"}
   ],
   "discipline": [
     "季度再平衡，任一子类偏离目标 ±5pp 即调回",
@@ -80,7 +141,10 @@
     "卫星自高点回撤 25% 且逻辑破坏即清仓（底仓不设硬止损）",
     "单一赛道 ≤15%",
     "限期限资金：满 11 个月开始减仓，满 12 个月清零",
-    "只在信号确认后调整结构，不做情绪化择时"
+    "只在信号确认后调整结构，不做情绪化择时",
+    "解禁窗口（2027-01 / 2027-03）不新增港股成长，只做红利压舱",
+    "科技「先抑后扬」：27Q1 观察窗口确认前不追高 AI 硬件",
+    "缓冲层债券只做风险控制，不当收益来源；不信用下沉、不拉长久期"
   ],
   "scenario_assumptions": [
     {"id": "bull", "equity_return": 0.25, "buffer_return": 0.015},
