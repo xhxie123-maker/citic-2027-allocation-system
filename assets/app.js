@@ -60,7 +60,7 @@ function renderSummary() {
     kv("核心底仓", fmtW(r.core), r.tier.name),
     kv("卫星进攻", fmtW(r.sat), "上限 40%"),
     kv("港股", fmtW(r.hk), r.micro ? "小额档不单列" : "先红利后成长"),
-    kv("缓冲层", fmtW(r.buf), "黄金 + 现金"),
+    kv("缓冲层", fmtW(r.buf), r.micro ? "小额档：货币弹药" : "黄金 + 债券 + 货币"),
     '</div>',
     '<div class="concl">' + g.d + '。' + r.action + '</div>',
     '<div class="pill-row"><span class="chip ' + g.cls + '">当前阶段：' + st.stage + '</span>',
@@ -128,7 +128,7 @@ function layerLegend(r) {
     { k: "core", name: "核心底仓", w: r.core, d: "宽基 + 红利 + 自由现金流" },
     { k: "sat", name: "卫星进攻", w: r.sat, d: "AI 硬件 / 出海制造 / 内需修复" },
     { k: "hk", name: "港股", w: r.hk, d: "港股通红利 → 恒生科技" },
-    { k: "buf", name: "缓冲层", w: r.buf, d: "黄金 + 货币" }
+    { k: "buf", name: "缓冲层", w: r.buf, d: r.micro ? "货币（弹药）" : "黄金 / 债券 / 货币" }
   ];
   return items.map(i =>
     '<div style="display:flex;gap:8px;align-items:baseline;margin:6px 0">' +
@@ -376,7 +376,7 @@ function renderDiscipline() {
     '<table><thead><tr><th>情景</th><th class="r">权益收益</th><th class="r">组合收益</th><th class="r">期末金额</th></tr></thead><tbody>',
     sc.map(x => '<tr><td>' + x.name + '<div class="tiny muted">' + x.note + '</div></td><td class="r">' + fmtPct2(x.equity) + '</td><td class="r">' + fmtPct2(x.port) + '</td><td class="r mono">' + fmtM(x.amount) + '</td></tr>').join(""),
     '</tbody></table>',
-    '<p class="note">组合收益 = 权益中枢 × 情景收益 + 缓冲层 × 缓冲收益。按当前权益 ' + fmtW(r.eq) + ' / 缓冲 ' + fmtW(r.buf) + ' 计算；缓冲收益取货币 + 黄金的保守叠加假设。</p></div>',
+    '<p class="note">组合收益 = 权益中枢 × 情景收益 + 缓冲层 × 缓冲收益。按当前权益 ' + fmtW(r.eq) + ' / 缓冲 ' + fmtW(r.buf) + ' 计算；缓冲收益取 黄金 + 债券 + 货币 的保守叠加假设（研报：债券只做风险控制，不指望它增厚收益）。</p></div>',
 
     '<div class="card"><h3>红线 <span class="tagn">违反即停手</span></h3>',
     '<ol style="margin:0;padding-left:18px;font-size:12.8px;color:var(--ink2)">' +

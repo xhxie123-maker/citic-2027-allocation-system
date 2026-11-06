@@ -16,8 +16,8 @@ function defaultState() {
     startDate: "2026-11-06",
     inputs: { earnings: 9.5, width: 50, ai: 20, risk: 0 },
     liq: { fed: 0, south: 0, dom: 0 },
-    anchors: { hs300: 45, divYield: 4.2, hstech: 2.4 },
-    signals: { fed: 0, south: 0, unlock: 1, fiscal: 0, capex: 0, geopol: 0 },
+    anchors: { hs300: 45, divYield: 4.7, hstech: 2.4, cyb50: 10.8, dySpread: 3.1 },
+    signals: { fed: 0, south: 0, unlock: 1, fiscal: 0, capex: 0, geopol: 0, hkconnect: 0, techwin: 0 },
     holdings: {},
     log: [],
     checks: {}
@@ -99,6 +99,16 @@ function normalize(parts) {
   return arr.map(p => ({ ...p, w: p.wv / sum * 100 }));
 }
 
+/* ---------- 港股解禁窗口 ----------
+ * 研报：2027-01 单月解禁超 3200 亿港元；2027-03 为年内峰值约 1258 亿（信息技术占 65%）。
+ * 落在窗口内时，解禁信号按更大力道压降港股成长，并额外压 AI 硬件（信息技术解禁占比高）。
+ */
+function inUnlockWindow() {
+  const now = new Date();
+  const ym = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+  return ym === "2027-01" || ym === "2027-03";
+}
+
 /* ---------- 主计算 ---------- */
 function compute() {
   const tierKey = S.tier;
@@ -121,7 +131,9 @@ function compute() {
 
   const width = dims.find(d => d.k === "width").score;
   const aiScore = dims.find(d => d.k === "ai").score;
+  const riskScore = dims.find(d => d.k === "risk").score;
   const sig = S.signals;
+  const unlockWin = inUnlockWindow();
 
   /* 底仓：行情宽度 → 宽基↑ / 红利↓；其余对冲 */
   const coreParts = micro
@@ -135,8 +147,9 @@ function compute() {
         { k: "fcf", name: "自由现金流", w: 20, d: -(width - 50) * 0.08 }
       ]);
 
-  /* 卫星：AI 硬件随算力动能与降速信号调整；内需随财政信号抬升 */
-  const aiD = (aiScore - 50) * 0.20 + (sig.capex ? -12 : 0) + (sig.geopol ? -8 : 0);
+  /* 卫星：AI 硬件随算力动能、降速信号、27Q1 技术窗口调整；内需随财政信号抬升 */
+  const aiD = (aiScore - 50) * 0.20 + (sig.capex ? -12 : 0) + (sig.geopol ? -8 : 0)
+    + (sig.techwin ? 8 : 0) + ((sig.unlock && unlockWin) ? -4 : 0);
   const consD = (sig.fiscal ? 10 : 0) + (width - 50) * 0.05;
   const satParts = micro
     ? normalize([
@@ -149,20 +162,23 @@ function compute() {
         { k: "cons", name: "内需修复（消费 / 医药 / 养殖）", w: 25, d: consD }
       ]);
 
-  /* 港股：先红利后成长，由降息 / 南向 / 解禁 / 地缘共同决定 */
-  const growD = (sig.fed ? 20 : 0) + (sig.south ? 10 : 0) - (sig.unlock ? 15 : 0) - (sig.geopol ? 15 : 0);
+  /* 港股：先红利后成长，由降息 / 南向 / 解禁 / 地缘 / 互联互通共同决定 */
+  const growD = (sig.fed ? 20 : 0) + (sig.south ? 10 : 0) + (sig.hkconnect ? 8 : 0)
+    - (sig.unlock ? (unlockWin ? 20 : 15) : 0) - (sig.geopol ? 15 : 0);
   const hkParts = normalize([
     { k: "hkdiv", name: "港股通红利 / 央企红利", w: 70, d: -growD },
     { k: "hkgrow", name: "恒生科技 / 港股通互联网", w: 30, d: growD }
   ]);
 
-  /* 缓冲：地缘升级加黄金 */
+  /* 缓冲三分：黄金对冲地缘、债券只做风险控制（风险发酵时加债）、货币留作弹药 */
   const goldD = sig.geopol ? 10 : 0;
+  const bondD = (60 - riskScore) * 0.10;
   const bufParts = micro
     ? [{ k: "cash", name: "货币 ETF / 货基（弹药）", w: 100 }]
     : normalize([
-        { k: "gold", name: "黄金", w: 60, d: goldD },
-        { k: "cash", name: "货币 / 短债", w: 40, d: -goldD }
+        { k: "gold", name: "黄金（地缘与流动性对冲）", w: 45, d: goldD },
+        { k: "bond", name: "利率债 / 短债（只做风险控制）", w: 30, d: bondD },
+        { k: "cash", name: "货币（再平衡弹药）", w: 25, d: 0 }
       ]);
 
   const leaves = [];
@@ -229,6 +245,10 @@ function compute() {
   if (S.anchors.hs300 > 70) warns.push({ type: "info", msg: "沪深 300 PE 分位 " + S.anchors.hs300 + "%：宽基停止新增加仓，只做再平衡。" });
   if (S.anchors.divYield < 3.5) warns.push({ type: "warn", msg: "红利指数股息率 " + S.anchors.divYield + "% 已低于 3.5% 阈值：红利仓位不再新增，只保留存量。" });
   if (S.anchors.hstech < 10) warns.push({ type: "info", msg: "恒生科技 PE 分位 " + S.anchors.hstech + "%（研报口径 2.4%）：属历史低位，可分批越跌越买。" });
+  if (S.anchors.cyb50 < 15) warns.push({ type: "info", msg: "创业板50 PE 分位 " + S.anchors.cyb50 + "%（研报口径 10.8%）：属高赔率区间，宽基的成长端可加。" });
+  if (S.anchors.dySpread < 1.5) warns.push({ type: "warn", msg: "红利股息率仅高于 10Y 国债 " + S.anchors.dySpread + "pp（<1.5pp）：红利相对债券的性价比消失，停止新增。" });
+  if (sig.unlock && unlockWin) warns.push({ type: "warn", msg: "当前处于港股解禁窗口（2027-01 / 2027-03）：港股成长额外压降 5pp、AI 硬件压降 4pp，窗口内不新增成长。" });
+  if (!micro && bufA > 0) warns.push({ type: "info", msg: "缓冲层已按研报分为黄金 / 债券 / 货币：债券只做风险控制与分散，不作收益增强。" });
 
   const action = total >= 70
     ? "研报条件偏顺：可按目标配置推进，回调日加仓，不追涨。"
@@ -242,7 +262,7 @@ function compute() {
     tier, tierKey, micro, dims, total, grade,
     core: coreA, sat: satA, hk: hkA, buf: bufA, eq: coreA + satA + hkA, mult,
     leaves, coreParts, satParts, hkParts, bufParts, offRatio, defRatio,
-    warns, anchorNotes, action
+    warns, anchorNotes, action, unlockWin
   };
 }
 
