@@ -68,6 +68,25 @@ assert("新信号（techwin / hkconnect）仍在 15% 单赛道上限内",
 assert("解禁窗口判定可用", typeof inUnlockWindow === "function",
   "now=" + (typeof inUnlockWindow === "function" ? inUnlockWindow() : "-"));
 
+/* ---- v1.2 新增结构断言：物理 AI 信号只抬制造分支、不越 15% ---- */
+S = Object.assign({}, defaultState(), { tier: "balanced", capital: 1000000, signals: { phys: 1 } });
+const rPhys = compute();
+const mfgOn = (rPhys.leaves.find(l => l.k === "mfg") || { weightPct: 0 }).weightPct;
+const aiOff = (rPhys.leaves.find(l => l.k === "ai") || { weightPct: 0 }).weightPct;
+S = Object.assign({}, defaultState(), { tier: "balanced", capital: 1000000, signals: {} });
+const rBase = compute();
+const mfgBase = (rBase.leaves.find(l => l.k === "mfg") || { weightPct: 0 }).weightPct;
+assert("物理 AI 信号：制造分支上调、AI 硬件略让、均在 15% 上限内",
+  mfgOn > mfgBase + 0.5 && aiOff < (rBase.leaves.find(l => l.k === "ai") || { weightPct: 0 }).weightPct + 0.01 &&
+  mfgOn <= 15.01 && aiOff <= 15.01,
+  "mfg " + mfgBase.toFixed(1) + " → " + mfgOn.toFixed(1) + " / ai " + aiOff.toFixed(1) +
+  " sum=" + rPhys.leaves.reduce((a, l) => a + l.weightPct, 0).toFixed(2));
+
+assert("v1.2 基线自洽（研报 14 / 参数 51 / 信号 9 / 规则 14）",
+  DATA.research.length === 14 && DATA.params.length === 51 && DATA.signals.length === 9 && DATA.rules.length === 14,
+  "research=" + DATA.research.length + " params=" + DATA.params.length +
+  " signals=" + DATA.signals.length + " rules=" + DATA.rules.length);
+
 S = Object.assign({}, defaultState(), { tier: "balanced", capital: 1000000, signals: {} });
 r2 = compute();
 
