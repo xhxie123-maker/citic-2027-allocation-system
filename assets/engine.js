@@ -17,7 +17,7 @@ function defaultState() {
     inputs: { earnings: 9.5, width: 50, ai: 20, risk: 0 },
     liq: { fed: 0, south: 0, dom: 0 },
     anchors: { hs300: 45, divYield: 4.7, hstech: 2.4, cyb50: 10.8, dySpread: 3.1 },
-    signals: { fed: 0, south: 0, unlock: 1, fiscal: 0, capex: 0, geopol: 0, hkconnect: 0, techwin: 0 },
+    signals: { fed: 0, south: 0, unlock: 1, fiscal: 0, capex: 0, geopol: 0, hkconnect: 0, techwin: 0, phys: 0 },
     holdings: {},
     log: [],
     checks: {}
@@ -147,18 +147,19 @@ function compute() {
         { k: "fcf", name: "自由现金流", w: 20, d: -(width - 50) * 0.08 }
       ]);
 
-  /* 卫星：AI 硬件随算力动能、降速信号、27Q1 技术窗口调整；内需随财政信号抬升 */
+  /* 卫星：AI 硬件随算力动能、降速信号、27Q1 技术窗口调整；制造随物理 AI 量产验证调整；内需随财政信号抬升 */
   const aiD = (aiScore - 50) * 0.20 + (sig.capex ? -12 : 0) + (sig.geopol ? -8 : 0)
-    + (sig.techwin ? 8 : 0) + ((sig.unlock && unlockWin) ? -4 : 0);
+    + (sig.techwin ? 8 : 0) + ((sig.unlock && unlockWin) ? -4 : 0) - (sig.phys ? 4 : 0);
+  const mfgD = (sig.phys ? 8 : 0);
   const consD = (sig.fiscal ? 10 : 0) + (width - 50) * 0.05;
   const satParts = micro
     ? normalize([
         { k: "ai", name: "科创芯片 / 通信（硬件端）", w: 60, d: aiD },
-        { k: "mfg", name: "高端制造 / 电力设备", w: 40, d: 0 }
+        { k: "mfg", name: "高端制造 / 电力设备", w: 40, d: mfgD }
       ])
     : normalize([
         { k: "ai", name: "AI 硬件（半导体设备 / 存储 / 光通信）", w: 40, d: aiD },
-        { k: "mfg", name: "优秀出海制造（机械 / 船舶 / 电力设备）", w: 35, d: 0 },
+        { k: "mfg", name: "优秀出海制造（机械 / 船舶 / 电力设备 / 机器人）", w: 35, d: mfgD },
         { k: "cons", name: "内需修复（消费 / 医药 / 养殖）", w: 25, d: consD }
       ]);
 
