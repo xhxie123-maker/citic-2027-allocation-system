@@ -1,10 +1,10 @@
 {
   "meta": {
     "name": "CITIC 2027 Strategy Allocation System",
-    "version": "1.2",
-    "baseline_date": "2026-11-09",
+    "version": "1.3",
+    "baseline_date": "2026-11-12",
     "horizon": "2026Q4-2027年末",
-    "purpose": "把中信证券研究 2027 年策略全库（30 篇）参数化为可执行配置与纪律",
+    "purpose": "把中信证券研究 2027 年策略全库（30 篇）参数化为可执行配置与纪律；v1.3 增加信号的每日监测口径与默认本金 1000 元",
     "album": "中信证券研究公众号专辑《2027年投资策略》，30 篇（总量 10 篇 + 产业 6 类，含消费细分 7 篇、非银、电池）",
     "disclaimer": "策略框架工具，不构成投资建议或收益承诺"
   },
@@ -429,7 +429,7 @@
     "gold": "地缘与流动性对冲；金融属性品种是 2027 年商品弹性的主要来源",
     "bond": "只做风险控制与分散，权重随风险维度动态（风险越差越加债）；不追信用下沉与长久期",
     "cash": "再平衡弹药，不满仓",
-    "micro_exception": "小额档缓冲层 100% 货币：3000 元的 10% 缓冲=300 元，拆三只会被最小申赎单位吃掉"
+    "micro_exception": "小额档缓冲层 100% 货币：1000 元的 10% 缓冲=100 元，拆三只会被最小申赎单位吃掉"
   },
   "dimension_weights": {
     "earnings": 0.2,
@@ -456,56 +456,99 @@
       "id": "fed",
       "name": "美联储降息落地",
       "source": "R·H",
-      "effect": "港股：恒生科技 +20pp，红利 −20pp"
+      "effect": "港股：恒生科技 +20pp，红利 −20pp",
+      "monitor": "美国 10Y 国债收益率、CME 降息概率、FOMC 会议日期",
+      "where": "investing.com 美债页 / CME FedWatch / 美联储官网日历",
+      "threshold": "10Y 跌破 4.00%，或下一次会议降息概率 ≥70%",
+      "review_days": 7
     },
     {
       "id": "south",
       "name": "南向资金重新加速",
       "source": "R·H",
-      "effect": "港股成长 +10pp"
+      "effect": "港股成长 +10pp",
+      "monitor": "港股通南向每日净买入（5 日累计）",
+      "where": "上交所/深交所港股通每日成交数据、券商 App 资金流页",
+      "threshold": "连续 5 个交易日净买入合计 > 250 亿港元",
+      "review_days": 1
     },
     {
       "id": "unlock",
       "name": "港股解禁 / 融资供给压力",
       "source": "R·H / R·T",
-      "effect": "港股成长 −15pp（窗口内 −20pp，维持红利压舱）"
+      "effect": "港股成长 −15pp（窗口内 −20pp，维持红利压舱）",
+      "monitor": "未来 60 天港股解禁金额、当月 IPO 定价与招股",
+      "where": "港交所披露易「新股上市」页、券商解禁日历",
+      "threshold": "未来 30 天内解禁合计 > 800 亿港元；或进入 2027-01 / 2027-03 窗口",
+      "review_days": 7
     },
     {
       "id": "fiscal",
       "name": "财政加力 / 地产去库存",
       "source": "R·A",
-      "effect": "内需修复 +10pp（由 AI、制造各让 5pp）"
+      "effect": "内需修复 +10pp（由 AI、制造各让 5pp）",
+      "monitor": "专项债发行进度、30 城商品房成交面积、财政支出同比",
+      "where": "财政部官网、Wind/东方财富宏观日历、各地住建局周度成交",
+      "threshold": "追加赤字或特别国债扩容落地；或 30 城成交连续 4 周同比转正",
+      "review_days": 7
     },
     {
       "id": "capex",
       "name": "AI 资本开支明显降速",
       "source": "R·A",
-      "effect": "AI 硬件 −12pp，转入宽基"
+      "effect": "AI 硬件 −12pp，转入宽基",
+      "monitor": "北美四大云厂 capex 指引、国内云厂资本开支、英伟达季度指引",
+      "where": "公司财报电话会与 10-Q/10-K、财报日历",
+      "threshold": "任一家下调全年 capex 指引 ≥10%，或行业同比增速 <20%",
+      "review_days": 14
     },
     {
       "id": "geopol",
       "name": "中美摩擦 / 地缘升级",
       "source": "R·A",
-      "effect": "港股成长 −15pp、AI −8pp、黄金 +10pp"
+      "effect": "港股成长 −15pp、AI −8pp、黄金 +10pp",
+      "monitor": "FCC 对中国光模块/设备的动作、关税与出口管制清单、台海与中东",
+      "where": "FCC 官网 docket、USTR 公告、商务部公告",
+      "threshold": "草案转为正式规则或实体清单落地（仍停留在草案不触发）",
+      "review_days": 3
     },
     {
       "id": "hkconnect",
       "name": "互联互通改革落地",
       "source": "R·H / R·B",
-      "effect": "港股成长 +8pp（南向承接增量）；港股红利同步纳入 REITs 替代"
+      "effect": "港股成长 +8pp（南向承接增量）；港股红利同步纳入 REITs 替代",
+      "monitor": "港交所 / 人民银行 / 证监会公告（人民币柜台、REITs 互联互通）",
+      "where": "港交所新闻稿、人民银行官网、证监会发布",
+      "threshold": "正式开通或公布明确生效日（征求意见稿不算）",
+      "review_days": 7
     },
     {
       "id": "techwin",
       "name": "27Q1 技术窗口确认",
       "source": "R·T2",
-      "effect": "AI 硬件 +8pp（确认前不追高）"
+      "effect": "AI 硬件 +8pp（确认前不追高）",
+      "monitor": "Rubin 训练模型发布与测评、国产大模型大版本、国产 HBM 量产、2027 capex 指引",
+      "where": "英伟达 GTC/开发者博客、各模型厂官网、存储厂公告、云厂财报",
+      "threshold": "四类事件中 ≥2 项落地（以可运行模型/量产数据为准）",
+      "review_days": 7
     },
     {
       "id": "phys",
       "name": "物理 AI 量产验证",
       "source": "R·T2",
-      "effect": "制造分支（机器人 / 汽车零部件 / 智驾链）+8pp"
+      "effect": "制造分支（机器人 / 汽车零部件 / 智驾链）+8pp",
+      "monitor": "Optimus 产线节拍与周产、国内人形机器人月度产量、L3 车型准入、Robotaxi 订单",
+      "where": "特斯拉产能追踪/财报、国家统计局与高工机器人月报、工信部 L3 准入目录",
+      "threshold": "人形机器人月产量连续 2 个月环比增长；或 L3 规模商用文件落地；或 Robotaxi 周订单连续增长",
+      "review_days": 7
     }
+  ],
+  "daily_routine": [
+    { "id": "r1", "step": "先看估值锚（2 分钟）", "detail": "沪深300 PE 分位、红利股息率、恒生科技与创业板50 分位、红利−10Y国债利差" },
+    { "id": "r2", "step": "再刷事件信号（2 分钟）", "detail": "南向净买入、美债 10Y 与降息概率、解禁日历、FCC/关税公告、机器人与 L3 数据" },
+    { "id": "r3", "step": "只改已触发/未触发（30 秒）", "detail": "只有阈值被跨越才切换，新闻标题与观点不算触发" },
+    { "id": "r4", "step": "逐项打卡（30 秒）", "detail": "记录上次复核日；超过 1 倍周期标黄，超过 2 倍标红，红标期间不加仓" },
+    { "id": "r5", "step": "周末全量复核（10 分钟）", "detail": "9 个信号全部过一遍，并把结构变化写进决策日志" }
   ],
   "valuation_anchors": [
     {
