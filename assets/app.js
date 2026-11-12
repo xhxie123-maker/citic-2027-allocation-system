@@ -81,6 +81,7 @@ function renderOverview() {
   const r = compute();
   const st = stageInfo();
   const triggered = DATA.signals.filter(s => S.signals[s.k]);
+  const rs = radarStatus();
 
   const allocRows = r.leaves.map(l =>
     '<tr><td>' + l.name + '</td><td class="r">' + fmtW(l.weightPct) + '</td><td class="r mono">' + fmtM(l.amount) + '</td></tr>'
@@ -108,10 +109,14 @@ function renderOverview() {
     '<table><thead><tr><th>子类</th><th class="r">目标权重</th><th class="r">金额</th></tr></thead><tbody>' + allocRows + '</tbody></table></div>',
 
     '<div class="card"><h3>信号状态 <span class="tagn">已触发 ' + triggered.length + ' / ' + DATA.signals.length + '</span></h3>',
+    '<div class="alert ' + (rs.expiredCount ? "warn" : "info") + '">每日复核：今天已核 <b>' + rs.checkedAll + ' / ' + DATA.signals.length + '</b> 项' +
+    (rs.expiredCount ? '；<b>' + rs.expiredCount + ' 项已超期未复核</b>，超期期间不加仓'
+      : (rs.staleCount ? '；' + rs.staleCount + ' 项待复核'
+        : (rs.noneCount ? '；' + rs.noneCount + ' 项尚未复核过' : '；全部今日已核'))) + '。</div>',
     triggered.length
       ? triggered.map(s => '<div class="alert ' + (s.k === "unlock" || s.k === "capex" ? "warn" : "info") + '"><b>' + s.name + '</b>：' + s.action + '</div>').join("")
       : '<div class="alert ok">研报列示的切换信号均未触发，维持当前结构。</div>',
-    '<p class="note">信号是结构开关，不是情绪开关：只有在此处确认，才调整权重；未确认前不主动预判。</p></div>',
+    '<p class="note">信号是结构开关，不是情绪开关：只有在此处确认，才调整权重；未确认前不主动预判。每天到「信号雷达」打卡，超期项先复核再加仓。</p></div>',
     '</div>',
 
     '<div class="card" style="margin-top:14px"><h3>研报关键参数 <span class="tagn">可审计基线</span></h3>',
@@ -244,22 +249,49 @@ function bindEngine() {
 /* ============ 信号雷达 ============ */
 function renderSignals() {
   const r = compute();
+  const rs = radarStatus();
   const on = DATA.signals.filter(s => S.signals[s.k]);
+
+  const lvlTag = lv => lv === "ok" ? '<span class="tagn" style="background:#e8f5ee;color:#1a7f4b">今日已核</span>'
+    : lv === "warn" ? '<span class="tagn" style="background:#fff4e5;color:#a86500">待复核</span>'
+    : lv === "expired" ? '<span class="tagn" style="background:#fdecec;color:#b42318">已超期</span>'
+    : '<span class="tagn" style="background:#f2f3f5;color:#666">未核过</span>';
 
   const cards = DATA.signals.map(s => {
     const active = !!S.signals[s.k];
+    const st = rs.list.find(x => x.k === s.k) || {};
+    const lastTxt = st.days == null ? "尚未复核" : (st.days === 0 ? "今天已核" : st.days + " 天前复核");
     return '<div class="sig' + (active ? " trig" : "") + '">' +
-      '<h4>' + s.name + ' <span class="tiny muted">' + s.src + '</span></h4>' +
+      '<h4>' + s.name + ' <span class="tiny muted">' + s.src + '</span> ' + lvlTag(st.level) + '</h4>' +
       '<p>' + s.desc + '</p>' +
+      '<div class="tiny" style="line-height:1.7;margin:6px 0 8px;padding:8px 10px;background:#fafbfc;border-left:3px solid #dfe3e8">' +
+        '<div><b>每日看什么</b>：' + s.watch + '</div>' +
+        '<div><b>在哪儿看</b>：' + s.where + '</div>' +
+        '<div><b>触发线</b>：' + s.thr + '</div>' +
+        '<div><b>复核周期</b>：≤ ' + s.stale + ' 天（' + lastTxt + '）</div>' +
+      '</div>' +
       '<div class="seg"><button class="' + (active ? "on" : "") + '" data-sig="' + s.k + '" data-v="1">已触发</button>' +
       '<button class="' + (!active ? "on" : "") + '" data-sig="' + s.k + '" data-v="0">未触发</button></div>' +
-      '<div class="eff">触发后：' + s.action + '</div></div>';
+      '<div class="eff">触发后：' + s.action + '</div>' +
+      '<button class="btn2" data-check="' + s.k + '" style="margin-top:8px;padding:4px 10px;font-size:12px;border:1px solid #dfe3e8;background:#fff;border-radius:6px;cursor:pointer">今天核对过</button>' +
+      '</div>';
   }).join("");
 
+  const routine = (DATA.routine || []).map(x =>
+    '<div style="padding:6px 0;border-bottom:1px dashed #eef0f3"><b>' + x.t + '</b><div class="tiny muted">' + x.d + '</div></div>'
+  ).join("");
+
   $id("tab-signals").innerHTML = [
-    '<div class="card"><h3>信号使用原则</h3>',
-    '<div class="alert info">研报把「结构调整」绑定在可观测事件上。本页面只允许两种状态：已触发 / 未触发。未触发的信号不预判、不提前加仓，这是这套系统与「看图猜方向」的区别。</div>',
-    '<div class="tiny muted">已触发 ' + on.length + ' 项 → 当前结构：港股成长 ' + fmtW(r.hk * (r.hkParts.find(p => p.k === "hkgrow").w / 100)) + '，AI 硬件 ' + fmtW(r.sat * (r.satParts.find(p => p.k === "ai") ? r.satParts.find(p => p.k === "ai").w / 100 : 0)) + '，内需修复 ' + fmtW(r.sat * (r.satParts.find(p => p.k === "cons") ? r.satParts.find(p => p.k === "cons").w / 100 : 0)) + '。</div>',
+    '<div class="card"><h3>每日巡检 <span class="tagn">' + rs.today + ' · 已核 ' + rs.checkedAll + ' / ' + DATA.signals.length + '</span></h3>',
+    '<div class="alert ' + (rs.expiredCount ? "warn" : "info") + '">' +
+      (rs.expiredCount
+        ? '<b>' + rs.expiredCount + ' 项已超期</b>' + (rs.maxDays != null ? '（最久 ' + rs.maxDays + ' 天未复核）' : '') + '：超期信号视为「未确认」，期间不加仓，先补核。'
+        : (rs.staleCount
+          ? rs.staleCount + ' 项待复核（在建议周期 2 倍内，可继续持有但今日需过一遍）。'
+          : (rs.noneCount ? rs.noneCount + ' 项尚未复核过：先按「每日看什么」逐项过一遍，点「今天核对过」。' : '全部信号今日已核，时效正常。'))) +
+      '</div>',
+    '<div class="grid g2" style="margin-top:10px"><div>' + routine + '</div>',
+    '<div class="tiny muted" style="line-height:1.8">规则：<br>1）只有阈值被跨越才切换状态，新闻标题、研报观点、聊天截图都不算触发；<br>2）触发状态一旦确认，当次调仓按「配置与调仓」页执行，不追第二次；<br>3）「今天核对过」只更新时间戳，不改变状态——状态和时效是两件事；<br>4）超期（>2 倍周期）未复核的信号按未触发处理，避免拿旧信息做新仓位。</div></div>',
     '</div>',
     '<div class="grid g3" style="margin-top:14px">' + cards + '</div>',
     '<div class="disc">说明：信号方向是研报给定的条件关系（例如「降息落地 → 港股成长修复」），不是无条件看多。若同一时间多个信号冲突（如降息落地但地缘升级），系统按权重对冲后的结果给出结构，并在「配置与调仓」页标注提示。</div>'
@@ -268,6 +300,12 @@ function renderSignals() {
   document.querySelectorAll("#tab-signals [data-sig]").forEach(b => {
     b.addEventListener("click", () => {
       S.signals[b.dataset.sig] = b.dataset.v === "1" ? 1 : 0;
+      renderAll();
+    });
+  });
+  document.querySelectorAll("#tab-signals [data-check]").forEach(b => {
+    b.addEventListener("click", () => {
+      markChecked(b.dataset.check);
       renderAll();
     });
   });
