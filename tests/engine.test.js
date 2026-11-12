@@ -36,7 +36,7 @@ function check(label, st, expect) {
   return r;
 }
 
-check("默认：小额 3000 元", {}, { eq: 90, maxTrack: true });
+check("默认：小额 1000 元", {}, { eq: 90, maxTrack: true });
 check("稳健 100 万", { tier: "balanced", capital: 1000000, signals: {} }, { eq: 95, maxTrack: true });
 check("防守 + 高估值", { tier: "defensive", capital: 500000, anchors: { hs300: 82, divYield: 3.2, hstech: 20 } }, { maxTrack: true });
 check("进取 + 全部信号", { tier: "aggressive", capital: 2000000, signals: { fed: 1, south: 1, unlock: 1, fiscal: 1, capex: 1, geopol: 1 } }, { maxTrack: true });
@@ -86,6 +86,39 @@ assert("v1.2 基线自洽（研报 14 / 参数 51 / 信号 9 / 规则 14）",
   DATA.research.length === 14 && DATA.params.length === 51 && DATA.signals.length === 9 && DATA.rules.length === 14,
   "research=" + DATA.research.length + " params=" + DATA.params.length +
   " signals=" + DATA.signals.length + " rules=" + DATA.rules.length);
+
+/* ---- v1.3：默认本金 1000 元 + 每日可监测的信号雷达 ---- */
+assert("默认本金改为 1000 元", defaultState().capital === 1000,
+  "capital=" + defaultState().capital);
+
+assert("每个信号均可每日监测（指标 / 来源 / 阈值 / 周期）",
+  DATA.signals.every(s => s.watch && s.where && s.thr && s.stale > 0),
+  "缺项：" + (DATA.signals.filter(s => !(s.watch && s.where && s.thr && s.stale)).map(s => s.k).join(",") || "-"));
+
+assert("每日巡检清单存在", Array.isArray(DATA.routine) && DATA.routine.length >= 4,
+  "routine=" + (DATA.routine || []).length);
+
+S = Object.assign({}, defaultState(), { sigAt: {} });
+let rRadar = radarStatus();
+assert("雷达初始：9 项全部未核过",
+  rRadar.list.length === 9 && rRadar.list.every(x => x.level === "none" && x.days === null),
+  "checkedAll=" + rRadar.checkedAll);
+
+markChecked("fed"); markChecked("south");
+rRadar = radarStatus();
+assert("打卡后当天即为有效（ok）",
+  rRadar.checkedAll === 2 && rRadar.list.filter(x => x.k === "fed")[0].level === "ok",
+  "checkedAll=" + rRadar.checkedAll + " fed=" + rRadar.list.filter(x => x.k === "fed")[0].level);
+
+S.sigAt = { fed: "2026-11-01", south: "2026-10-01" };
+rRadar = radarStatus();
+assert("超期判定分级（warn / expired）",
+  rRadar.list.filter(x => x.k === "fed")[0].level !== "ok" &&
+  rRadar.list.filter(x => x.k === "south")[0].level === "expired" &&
+  rRadar.expiredCount >= 1,
+  "fed=" + rRadar.list.filter(x => x.k === "fed")[0].level +
+  " south=" + rRadar.list.filter(x => x.k === "south")[0].level +
+  " expired=" + rRadar.expiredCount);
 
 S = Object.assign({}, defaultState(), { tier: "balanced", capital: 1000000, signals: {} });
 r2 = compute();
