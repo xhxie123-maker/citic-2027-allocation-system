@@ -11,13 +11,14 @@ const fmtPct2 = v => (v >= 0 ? "+" : "") + (Math.round(v * 10) / 10).toFixed(1) 
 function defaultState() {
   return {
     tier: "micro",
-    capital: 3000,
+    capital: 1000,
     horizon: 12,
-    startDate: "2026-11-06",
+    startDate: "2026-11-12",
     inputs: { earnings: 9.5, width: 50, ai: 20, risk: 0 },
     liq: { fed: 0, south: 0, dom: 0 },
     anchors: { hs300: 45, divYield: 4.7, hstech: 2.4, cyb50: 10.8, dySpread: 3.1 },
     signals: { fed: 0, south: 0, unlock: 1, fiscal: 0, capex: 0, geopol: 0, hkconnect: 0, techwin: 0, phys: 0 },
+    sigAt: {},
     holdings: {},
     log: [],
     checks: {}
@@ -32,16 +33,24 @@ function load() {
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw);
     const base = defaultState();
-    return {
+    const out = {
       ...base, ...parsed,
       inputs: { ...base.inputs, ...(parsed.inputs || {}) },
       liq: { ...base.liq, ...(parsed.liq || {}) },
       anchors: { ...base.anchors, ...(parsed.anchors || {}) },
       signals: { ...base.signals, ...(parsed.signals || {}) },
+      sigAt: { ...(parsed.sigAt || {}) },
       holdings: { ...(parsed.holdings || {}) },
       checks: { ...(parsed.checks || {}) },
       log: Array.isArray(parsed.log) ? parsed.log : []
     };
+    /* v1.3 迁移：旧默认本金 3000 元 → 新默认 1000 元（只迁移一次，用户手动改过的不动） */
+    if (parsed.capital === 3000 && !parsed.capMigrated) {
+      out.capital = 1000;
+      out.capMigrated = true;
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(out)); } catch (e) { /* 忽略 */ }
+    }
+    return out;
   } catch (e) {
     return defaultState();
   }
@@ -49,6 +58,48 @@ function load() {
 
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch (e) { /* 存储不可用时静默 */ }
+}
+
+/* ---------- 信号雷达：每日复核时效 ---------- */
+function todayISO() {
+  const d = new Date();
+  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+}
+
+function daysSince(iso) {
+  if (!iso) return null;
+  const a = new Date(iso + "T00:00:00");
+  const b = new Date(todayISO() + "T00:00:00");
+  if (isNaN(a)) return null;
+  return Math.round((b - a) / (24 * 3600 * 1000));
+}
+
+/* 每项信号：是否触发、上次复核日、距今天数、时效等级（ok/warn/expired/none） */
+function radarStatus() {
+  const today = todayISO();
+  const list = DATA.signals.map(s => {
+    const last = S.sigAt[s.k] || null;
+    const days = daysSince(last);
+    const stale = s.stale || 7;
+    let level = "none";
+    if (days != null && days <= stale) level = "ok";
+    else if (days != null && days <= stale * 2) level = "warn";
+    else if (days != null) level = "expired";
+    return { k: s.k, name: s.name, trig: !!S.signals[s.k], last, days, stale, level };
+  });
+  const checkedToday = list.filter(x => x.last === today && x.trig).length;
+  const checkedAll = list.filter(x => x.last === today).length;
+  const staleCount = list.filter(x => x.level === "warn").length;
+  const expiredCount = list.filter(x => x.level === "expired").length;
+  const noneCount = list.filter(x => x.level === "none").length;
+  const known = list.filter(x => x.days != null);
+  const maxDays = known.length ? Math.max.apply(null, known.map(x => x.days)) : null;
+  return { today, list, checkedToday, checkedAll, staleCount, expiredCount, noneCount, maxDays };
+}
+
+function markChecked(k) {
+  S.sigAt[k] = todayISO();
+  save();
 }
 
 /* ---------- 维度评分 ---------- */
